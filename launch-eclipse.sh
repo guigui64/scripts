@@ -32,6 +32,8 @@ while getopts "hct:v:w:" opt; do
     esac
 done
 
+unset SIMTG_LOCAL_ROOT
+
 L_ECLIPSE="eclipse$VERSION"
 if [[ $VERSION == local ]] ; then
     . ~/scripts/envSimTG.sh
