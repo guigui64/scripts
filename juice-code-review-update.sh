@@ -10,7 +10,8 @@ HOST="frene.astrium.eads.net"
 FILE="$1.bundle"
 
 echo "### 1) retrieve the bundle on the ftp"
-ftp $HOST <<END_SCRIPT
+ftp -nv $HOST <<END_SCRIPT
+user njuiastri astri@polska
 cd to_AirbusDS
 cd code_review
 cd $PROJECT_NAME
@@ -27,7 +28,7 @@ git pull
 
 echo ""
 echo "### 3) push"
-git push haribo --all
-git push haribo --tags
+git push haribo --force refs/remotes/origin/*:refs/heads/*
+git push haribo --force refs/tags/*:refs/tags/*
 
 exit 0

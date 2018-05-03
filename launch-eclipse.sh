@@ -45,9 +45,6 @@ if [[ $CLEAN == 1 ]] ; then
 fi
 
 L_ECLIPSE="$L_ECLIPSE -w $WORKSPACE"
-if [[ $VERSION == local ]] ; then
-    L_ECLIPSE="$L_ECLIPSE &"
-fi
 
 # GTK fix for eclipse mars
 export SWT_GTK3=0
@@ -66,5 +63,5 @@ echo "Theme file : $THEME_FILE"
 # Launch
 echo
 echo "### Launching with command \"$L_ECLIPSE\" ###"
-GTK2_RC_FILES=$THEME_FILE $L_ECLIPSE #&>/tmp/eclipse.log &
+GTK2_RC_FILES=$THEME_FILE $L_ECLIPSE & #>/tmp/eclipse.log &
 #head /tmp/eclipse.log

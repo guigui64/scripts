@@ -9,7 +9,8 @@ PROJECT_NAME="$1"
 HOST="frene.astrium.eads.net"
 FILE="$1.bundle"
 
-ftp $HOST <<END_SCRIPT
+ftp -nv $HOST <<END_SCRIPT
+user njuiastri astri@polska
 cd to_AirbusDS
 cd code_review
 cd $PROJECT_NAME
