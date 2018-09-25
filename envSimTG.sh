@@ -2,7 +2,6 @@
 # This script should be sourced to set the environment used for cores etc.
 # This is inspired by the /usr/local/bin/eclipseIASI-NG script
 
-TARTGET="Ubuntu_16.04/64bit"
 TARGET_DEP="Ubuntu_16.04/64bit"
 
 # Dependencies Locations

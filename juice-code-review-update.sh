@@ -13,7 +13,8 @@ echo "### 1) retrieve the bundle on the ftp"
 ftp -nv $HOST <<END_SCRIPT
 user njuiastri astri@polska
 cd to_AirbusDS
-cd code_review
+cd RTS
+cd delivery
 cd $PROJECT_NAME
 get $FILE
 quit
