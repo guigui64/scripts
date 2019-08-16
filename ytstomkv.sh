@@ -14,7 +14,7 @@ if [[ ! -f "${file}.srt" ]] ; then
 fi
 
 echo "Creating ${file}.mkv..."
-ffmpeg -i "${file}.mp4" -i "${file}.srt" -c:v copy -c:a copy -c:s srt "${file}.mkv"
+ffmpeg -i "${file}.mp4" -i "${file}.srt" -c:v copy -c:a copy -c:s srt -metadata:s:s:0 language=eng "${file}.mkv"
 
 echo "Deleting mp4 and srt..."
 rm -v $(ls !(*.mkv))
