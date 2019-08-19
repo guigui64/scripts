@@ -22,6 +22,11 @@ if [ ! -e ${DEPS_CACHE}/xerces-c/2.8.0 ] ; then
 fi
 export XERCESCROOT=${DEPS_CACHE}/xerces-c/2.8.0
 export XERCES_ROOT=${XERCESCROOT}
+if [ ! -e ${DEPS_CACHE}/xerces-c/3.1.2 ] ; then
+    echo "Caching xerces-c 3.1.2..."
+    mkdir -p ${DEPS_CACHE}/xerces-c
+    cp -r ${SDK_PATH}/tools/dependencies/${TARGET_DEP}/xerces-c/3.1.2/ ${DEPS_CACHE}/xerces-c/
+fi
 # export ZMQ_ROOT=${SDK_PATH}/tools/dependencies/${TARGET_DEP}/zeromq/4.0.3
 if [ ! -e ${DEPS_CACHE}/zeromq/4.0.3 ] ; then
     echo "Caching zeromq 4.0.3..."
@@ -36,6 +41,12 @@ if [ ! -e ${DEPS_CACHE}/tsp/0.8.3 ] ; then
     cp -r ${SDK_PATH}/tools/dependencies/${TARGET_DEP}/tsp/0.8.3/ ${DEPS_CACHE}/tsp/
 fi
 export TSP_ROOT=${DEPS_CACHE}/tsp/0.8.3
+if [ ! -e ${DEPS_CACHE}/xsd/4.0.0 ] ; then
+    echo "Caching xsd 4.0.0..."
+    mkdir -p ${DEPS_CACHE}/xsd
+    cp -r ${SDK_PATH}/tools/dependencies/Linux/64bit/xsd/4.0.0/ ${DEPS_CACHE}/xsd
+fi
+export XSD_ROOT=${DEPS_CACHE}/xsd/4.0.0
 export PYTHON_ROOT=/usr/bin
 
 export SIMTG_INSTALL_ROOT=/tools/simtg
@@ -47,7 +58,7 @@ export HYBRID_INSTALL_ROOT=/hybrid
 export PATH=${TAO_ROOT}/bin:${ACE_ROOT}/bin:${ZMQ_ROOT}/bin:${PATH}
 
 # Export LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${TAO_ROOT}/lib:${ACE_ROOT}/lib:${XERCESCROOT}/lib:${TSP_ROOT}/lib:${ZMQ_ROOT}/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${TAO_ROOT}/lib:${ACE_ROOT}/lib:${XERCESCROOT}/lib:${TSP_ROOT}/lib:${XSD_ROOT}/lib:${ZMQ_ROOT}/lib:${LD_LIBRARY_PATH}
 
 # Set Workspace
 if [ ${WORKSPACE} ]

@@ -25,7 +25,7 @@ echo "### 2) stash and pull"
 cd $PROJECT_NAME
 git stash save "juice-code-review-update script : stash changes before pulling the new bundle"
 git checkout master
-git pull
+git pull origin
 
 echo ""
 echo "### 3) push"

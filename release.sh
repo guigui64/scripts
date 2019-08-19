@@ -10,6 +10,7 @@ usage() {
     echo "  --origin-name ORIGIN_NAME : set the origin name (default is 'origin')"
     echo "  --prefix PREFIX           : prefix to add to the versions.properties path"
     echo "                              default value is '' -> ant/versions.properties"
+    echo "  --simple-tag              : tag will only be x_y_z (without prefix)"
     echo "  --log                     : print the git log before and after"
     echo "  --cherry-pick CP_HASH     : commit hash to cherry-pick into the patch version"
 }
@@ -48,6 +49,9 @@ while [[ $1 == --* ]]; do
         "--log")
             LOG="True"
             ;;
+        "--simple-tag")
+            SIMPLE_TAG="True"
+            ;;
         "--cherry-pick")
             shift
             CP_HASH=$1
@@ -74,7 +78,11 @@ Y=$2
 Z=$3
 VERSION=$X.$Y.$Z
 BRANCH=release-$X.$Y.x
+if [[ Z -ge 1000 ]] ; then
+    BRANCH=release-$X.$Y.100x
+fi
 TAG=${PROJECT}_${VERSION}
+if [[ $SIMPLE_TAG == "True" ]]; then TAG=${VERSION} ; fi
 
 if [[ $LOG == "True" ]]; then echo "--- BEFORE ---" ; git log --all --graph --decorate --oneline ; fi
 

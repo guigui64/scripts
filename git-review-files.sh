@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 
-FILES=$(git status -s | ack "^.M" | awk '{print $2}')
+wd=$1
+FILES=$(git status -s $wd | ack "^.M" | awk '{print $2}')
 for file in $FILES; do
     clear;
     BASE=$(basename -- $file)
