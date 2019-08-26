@@ -4,7 +4,7 @@ RANGE_PATH="/home/comte/rangedb/"
 L_RANGEDB="./RangeDB"
 
 # Load env
-. ~/scripts/envSimTG.sh
+. envSimTG.sh
 
 # GTK fix for eclipse mars
 export SWT_GTK3=0

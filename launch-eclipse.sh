@@ -41,7 +41,7 @@ unset SIMTG_LOCAL_ROOT
 
 L_ECLIPSE="eclipse$VERSION"
 if [[ $VERSION == local ]] ; then
-    . ~/scripts/envSimTG.sh
+    . envSimTG.sh
     L_ECLIPSE="eclipse"
 fi
 
