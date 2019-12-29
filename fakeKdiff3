@@ -1,0 +1,2 @@
+#!/bin/sh
+diff $1 $2 > /tmp/diff.diff; kate /tmp/diff.diff &> /tmp/katefakediff.out

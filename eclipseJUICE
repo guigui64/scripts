@@ -1,0 +1,221 @@
+#!/bin/bash
+# This script launch eclipse JUICE
+
+# Fill this variable to use a local SDK
+SDK_PATH=""
+
+TARGET="Ubuntu_16.04/64bit"
+TARGET_DEP="Ubuntu_16.04/64bit"
+
+# Options management
+if [ "$1" == "-h" ]
+then    
+    #--help
+    HELP="true"
+elif [ "$1" == "-l" ]
+then
+    #--list
+    LIST="true"
+elif [ "$1" == "-v" ]
+then
+    #--version
+    VERS="$2"
+    if [ "$3" == "-w" ]
+    then
+        #--workspace
+        WORKSPACE="$4"
+    fi
+elif [ "$1" == "-w" ]
+then
+    #--workspace
+    WORKSPACE="$2"
+    if [ "$3" == "-v" ]
+    then
+        #--version
+        VERS="$4"
+    fi
+fi
+
+if [ -v HELP ]
+then echo "usage: eclipseJUICE [options]";
+echo " ";
+echo "Options:"
+echo "  -h           shows this help message and exit"
+echo "  -l           list all the eclipse JUICE versions available"
+echo "  -v <X.Y.Z_A> launch the eclipse JUICE <X.Y.Z_A> version"
+echo "                 by default the launch version is the last delivered"
+echo "  -w <path>    launch eclipse JUICE in the workspace <path>"
+echo "                 by default the workspace set is ~/workspace_JUICE_<version>"
+echo "                 where <version> is the eclipse JUICE version" 
+echo " "
+echo "Examples:"
+echo "  eclipseJUICE                  launch the last installed eclipseJUICE version"
+echo "  eclipseJUICE -v X.Y.Z_A       launch the version X.Y.Z_A of eclipse JUICE"
+echo "  eclipseJUICE -w ~/workspace   launch eclipse JUICE in the workspace ~/workspace"
+echo " "
+exit 1
+fi
+
+# Eclipse export display options
+export SWT_GTK3=0
+export QT_GRAPHICSSYSTEM=native
+
+# Dependencies Locations
+DEPS_CACHE=${HOME}/tmp/DEPS_CACHE
+# export ACE_ROOT=${SDK_PATH}/tools/dependencies/${TARGET_DEP}/ACE-TAO/6.1.0
+if [ ! -e ${DEPS_CACHE}/ACE-TAO/6.1.0 ] ; then
+    echo "Caching ACE-TAO 6.1.0..."
+    mkdir -p ${DEPS_CACHE}/ACE-TAO
+    cp -r ${SDK_PATH}/tools/dependencies/${TARGET_DEP}/ACE-TAO/6.1.0/ ${DEPS_CACHE}/ACE-TAO/
+fi
+export ACE_ROOT=${DEPS_CACHE}/ACE-TAO/6.1.0
+export TAO_ROOT=${ACE_ROOT}
+# export XERCESCROOT=${SDK_PATH}/tools/dependencies/${TARGET_DEP}/xerces-c/2.8.0
+if [ ! -e ${DEPS_CACHE}/xerces-c/2.8.0 ] ; then
+    echo "Caching xerces-c 2.8.0..."
+    mkdir -p ${DEPS_CACHE}/xerces-c
+    cp -r ${SDK_PATH}/tools/dependencies/${TARGET_DEP}/xerces-c/2.8.0/ ${DEPS_CACHE}/xerces-c/
+fi
+export XERCESCROOT=${DEPS_CACHE}/xerces-c/2.8.0
+export XERCES_ROOT=${XERCESCROOT}
+# export ZMQ_ROOT=${SDK_PATH}/tools/dependencies/${TARGET_DEP}/zeromq/4.0.3
+if [ ! -e ${DEPS_CACHE}/zeromq/4.0.3 ] ; then
+    echo "Caching zeromq 4.0.3..."
+    mkdir -p ${DEPS_CACHE}/zeromq
+    cp -r ${SDK_PATH}/tools/dependencies/${TARGET_DEP}/zeromq/4.0.3/ ${DEPS_CACHE}/zeromq/
+fi
+export ZMQ_ROOT=${DEPS_CACHE}/zeromq/4.0.3
+# export TSP_ROOT=${SDK_PATH}/tools/dependencies/${TARGET_DEP}/tsp/0.8.3
+if [ ! -e ${DEPS_CACHE}/tsp/0.8.3 ] ; then
+    echo "Caching tsp 0.8.3..."
+    mkdir -p ${DEPS_CACHE}/tsp
+    cp -r ${SDK_PATH}/tools/dependencies/${TARGET_DEP}/tsp/0.8.3/ ${DEPS_CACHE}/tsp/
+fi
+export TSP_ROOT=${DEPS_CACHE}/tsp/0.8.3
+export PYTHON_ROOT=/usr/bin
+
+if [ -v JAVA_HOME ]
+then
+    export JAVA_HOME
+    PATH=${JAVA_HOME}/bin:${PATH}
+else
+    # fall-back to system JVM if not provided by the user
+    export JAVA_HOME=/usr/java/default    
+fi
+
+export SIMTG_INSTALL_ROOT=${SDK_PATH}/tools/simtg
+export MODELS_INSTALL_ROOT=${SDK_PATH}/models
+export PROJECTS_INSTALL_ROOT=${SDK_PATH}/projects
+export HYBRID_INSTALL_ROOT=${SDK_PATH}/hybrid
+
+# Export PATH
+export PATH=${TAO_ROOT}/bin:${ACE_ROOT}/bin:${PATH}
+
+# Export LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${TAO_ROOT}/lib:${ACE_ROOT}/lib:${XERCESCROOT}/lib:${ZMQ_ROOT}/lib:${TSP_ROOT}/lib:${LD_LIBRARY_PATH}
+
+# SIMTG_LOCAL_ROOT determination if not yet defined
+if [ -z "$SIMTG_LOCAL_ROOT" ]; then
+  if [ -v WORKSPACE ]
+  then
+    if [ ! -d $WORKSPACE ]; then mkdir -p $WORKSPACE; fi
+    export SIMTG_LOCAL_ROOT=`cd ${WORKSPACE}; pwd`
+  else
+    export SIMTG_LOCAL_ROOT=${HOME}/workspace
+  fi
+fi
+
+# Eclipse location paths
+ECLIPSE_PROJECT_NAME=juiceCommon
+ECLIPSE_INSTALL_ROOT=${PROJECTS_INSTALL_ROOT}/JUICE/${ECLIPSE_PROJECT_NAME}/${TARGET}
+ECLIPSE_LOCAL_ROOT=${SIMTG_LOCAL_ROOT}/juiceCommon/delivery
+
+# List versions
+if [ -v LIST ]
+then
+    echo "Available eclipseJUICE versions are"
+    ls $ECLIPSE_INSTALL_ROOT | awk -F_ '{ print "       - " $2 }'
+    exit 1
+fi
+
+# Eclipse version lookup
+if [ -v VERS ]
+then
+    VERSION=${ECLIPSE_PROJECT_NAME}_${VERS}
+    ECLIPSE_VERSION=${VERSION}
+    if [ -e "${ECLIPSE_INSTALL_ROOT}/${VERSION}/eclipseDev/eclipse" ]
+        then
+            ECLIPSE_EXEC=${ECLIPSE_INSTALL_ROOT}/${VERSION}/eclipseDev/eclipse
+    elif [ -e "${ECLIPSE_LOCAL_ROOT}/${VERSION}/eclipseDev/eclipse" ]
+        then
+            ECLIPSE_EXEC=${ECLIPSE_LOCAL_ROOT}/${VERSION}/eclipseDev/eclipse
+    fi
+else
+    # Lookup Eclipse JUICE in ${ECLIPSE_LOCAL_ROOT}
+    if [ -e "${ECLIPSE_LOCAL_ROOT}" ]
+    then
+        LOCAL_VERSIONS=`\ls -1t ${ECLIPSE_LOCAL_ROOT} | grep -v 999.0.0`
+        for line in ${LOCAL_VERSIONS}; do LOCAL_VERSION=$line;break; done
+    fi
+
+    # Lookup Eclipse JUICE in ${ECLIPSE_INSTALL_ROOT}
+    if [ -e "${ECLIPSE_INSTALL_ROOT}" ]
+    then
+        INSTALL_VERSIONS=`\ls -rv ${ECLIPSE_INSTALL_ROOT}`
+        for line in ${INSTALL_VERSIONS}; do INSTALL_VERSION=$line;break; done
+    fi
+
+    # Select ECLIPSE to use
+    if [ ${LOCAL_VERSION} ]
+        then
+            VERSION=${LOCAL_VERSION}
+            ECLIPSE_VERSION=${LOCAL_VERSION}
+            ECLIPSE_EXEC=${ECLIPSE_LOCAL_ROOT}/${VERSION}/eclipseDev/eclipse
+    elif [ ${INSTALL_VERSION} ]
+        then
+            VERSION=${INSTALL_VERSION}
+            ECLIPSE_VERSION=${INSTALL_VERSION}
+            ECLIPSE_EXEC=${ECLIPSE_INSTALL_ROOT}/${VERSION}/eclipseDev/eclipse
+    fi
+fi
+
+# Cache Eclipse to avoid network overload
+if [ -e "${ECLIPSE_INSTALL_ROOT}/${VERSION}/eclipseDev/eclipse" ]
+  then
+    unset ECLIPSE_EXEC
+    ECLIPSE_EXEC=${HOME}/.juiceCommon/${VERSION}/eclipseDev/eclipse
+    if [ ! -e ${HOME}/.juiceCommon/${VERSION} ]
+        then
+           echo "Updating cache with JUICE Eclipse version ${VERSION} ..."
+           \rm -fr ${HOME}/.juiceCommon
+           \mkdir -p ${HOME}/.juiceCommon/${VERSION}
+           \cp -fr ${ECLIPSE_INSTALL_ROOT}/${VERSION}/eclipseDev ${HOME}/.juiceCommon/${VERSION}
+    fi
+fi
+
+#Launch Eclipse
+if [ -e "${ECLIPSE_EXEC}" ]
+    then
+        # Display the environment set
+        echo "JUICE Eclipse environment :"
+        echo " Eclipse executed      = ${ECLIPSE_EXEC}"
+        echo " Workspace used        = ${WORKSPACE}"
+        echo " SIMTG_LOCAL_ROOT      = ${SIMTG_LOCAL_ROOT}"
+        echo " SIMTG_INSTALL_ROOT    = ${SIMTG_INSTALL_ROOT}"
+        echo " MODELS_INSTALL_ROOT   = ${MODELS_INSTALL_ROOT}"
+        echo " ECLIPSE_INSTALL_ROOT  = ${ECLIPSE_INSTALL_ROOT}"
+        echo " ACE/TAO_ROOT          = ${ACE_ROOT}"
+        echo " ZMQ_ROOT              = ${ZMQ_ROOT}"
+        echo " TSP_ROOT              = ${TSP_ROOT}"
+        echo " JAVA_HOME             = ${JAVA_HOME}"
+        echo " "
+                        
+        # Eclipse execution
+        ${ECLIPSE_EXEC} -data ${WORKSPACE} &
+    else
+        echo "No JUICE Eclipse version ${VERSION} in the ECLIPSE_INSTALL_ROOT and ECLIPSE_LOCAL_ROOT"
+        echo " ${ECLIPSE_INSTALL_ROOT}"
+        echo " ${ECLIPSE_LOCAL_ROOT}"
+        echo " "
+        exit 1
+fi

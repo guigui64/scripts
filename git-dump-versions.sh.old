@@ -1,0 +1,22 @@
+#!/bin/bash
+
+ROOT_FOLDER=$(\git rev-parse --show-toplevel)
+CURR_DIR=$(pwd)
+if [ "$ROOT_FOLDER" != "$CURR_DIR" ]
+then
+  echo "Switch to the root of the repo and try again. Should be in $ROOT_FOLDER"
+  exit
+fi
+
+FILENAME=$1
+LINES=$(\git log --oneline --all | grep Release | wc -l)
+HASHES=$(\git log --oneline --all | grep Release | awk '{ print $1 }')
+    
+for HASH in $HASHES; do
+    VERSION=$(\git log -n 1 --pretty=format:%s $HASH)
+    echo "====================================================="
+    echo "VERSION = $VERSION"
+    echo "====================================================="
+    git show $HASH:$FILENAME
+    echo ""
+done
