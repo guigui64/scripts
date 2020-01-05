@@ -1,0 +1,5 @@
+#! /bin/bash
+
+cd ~/git/wok
+source $(pipenv --venv)/bin/activate
+PYTHONPATH=. python3 ./wokcli/wokcli.py $*
