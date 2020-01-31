@@ -1,16 +1,17 @@
 #! /usr/bin/env python
-import subprocess
-import shlex
-import os
 import argparse
-import tempfile
-import shutil
-import re
-from distutils.util import strtobool
-from redmine import Redmine
 import datetime
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import tempfile
 import webbrowser
+from distutils.util import strtobool
 from os.path import expanduser
+
+from redmine import Redmine
 
 
 def execute(cmd, cwd=".", stdout=None, stderr=None):
@@ -21,7 +22,7 @@ def execute(cmd, cwd=".", stdout=None, stderr=None):
     (out, err) = p.communicate()
     if p.returncode != 0:
         if err:
-            print err
+            print(err)
         raise Exception
 
 
@@ -79,7 +80,7 @@ def tag(product, version, options):
     try:
         temp_dir = tempfile.mkdtemp()
 
-        print "Clone git@%s:%s/%s.git" % (options.repository, options.group, product)
+        print("Clone git@%s:%s/%s.git" % (options.repository, options.group, product))
         cmd = "git clone git@%s:%s/%s.git" % (
             options.repository,
             options.group,
@@ -87,27 +88,48 @@ def tag(product, version, options):
         )
         execute(cmd, cwd=temp_dir)
 
-        print "Checkout develop"
+        print("Checkout develop")
         cwd = os.path.join(temp_dir, product)
         cmd = "git checkout develop"
         execute(cmd, cwd=cwd)
 
-        print "Create local release branch"
+        print("Create local release branch")
         cmd = "git checkout -b release_%s" % (version)
         execute(cmd, cwd=cwd)
 
-        print "Patching %s.version in %s to %s" % (product, options.properties, version)
+        print(
+            "Patching %s.version in %s to %s" % (product, options.properties, version)
+        )
         replace(
             os.path.join(cwd, "%s" % (options.properties)),
             "%s.version=.*" % (product),
             "%s.version=%s" % (product, version),
         )
 
-        print "Commit changes"
+        print("Commit changes")
         cmd = 'git commit -m "Udpate version" %s' % (options.properties)
         execute(cmd, cwd=cwd)
 
-        print "Merge release branch in master"
+        # redmine issue after git commit
+        if not options.noredmine:
+            redmine_url = "http://" + options.redminerepository + "/redmine"
+            home = expanduser("~")
+            redmine_key = (
+                open(home + "/.redmine_apikey_" + options.redminerepository, "r")
+                .read()
+                .replace("\n", "")
+            )
+
+            redmine = Redmine(redmine_url, key=redmine_key)
+            project = get_project(
+                redmine, options.redmineid if options.redmineid is not None else product
+            )
+
+            issueid = create_redmine_issue(redmine, project, version)
+        else:
+            issueid = "XXXXX"
+
+        print("Merge release branch in master")
         cmd = "git checkout master"
         execute(cmd, cwd=cwd)
 
@@ -118,7 +140,7 @@ def tag(product, version, options):
         )
         execute(cmd, cwd=cwd)
 
-        print "Tag master"
+        print("Tag master")
         cmd = "git tag %s_%s" % (product, version)
         execute(cmd, cwd=cwd)
 
@@ -148,32 +170,14 @@ def tag(product, version, options):
                 + project.identifier
                 + "/issues"
             )
-            print "Done"
+            print("Done")
         else:
-            print "Operation cancelled"
-
-        # redmine issue after git mgmt (in case git fails, no redmine issue
-        # should be created
-        if not options.noredmine:
-            redmine_url = "http://" + options.redminerepository + "/redmine"
-            home = expanduser("~")
-            redmine_key = (
-                open(home + "/.redmine_apikey_" + options.redminerepository, "r")
-                .read()
-                .replace("\n", "")
-            )
-
-            redmine = Redmine(redmine_url, key=redmine_key)
-            project = get_project(
-                redmine, options.redmineid if options.redmineid != None else product
-            )
-
-            issueid = create_redmine_issue(redmine, project, version)
+            print("Operation cancelled")
 
         return 0
     except Exception as e:
-        print "Error :"
-        print str(e)
+        print("Error :")
+        print(str(e))
         return -1
     finally:
         shutil.rmtree(temp_dir)
